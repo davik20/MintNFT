@@ -11,7 +11,7 @@ import ClipLoader from "react-spinners/ClipLoader";
 import CheckIcon from "@material-ui/icons/Check";
 import BarLoader from "react-spinners/BarLoader";
 import useClickOutside from "../hooks/useClickOutside";
-
+import addDataToIPFS from "../functions/getIPFS";
 import device from "../styles/responsive";
 function CreateNFT() {
   const { showCreateModal } = useContext(AppContext);
@@ -31,6 +31,9 @@ function CreateNFT() {
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(null);
+  const [formError, setFormError] = useState(false);
+  const [formErrorMessage, setFormErrorMessage] = useState("");
   const [joke, setJoke] = useState("Alright Beginning the Transaction now 🙂");
 
   const [form, setForm] = useState({
@@ -52,11 +55,19 @@ function CreateNFT() {
 
   useEffect(() => {
     if (image) {
-      console.log(image);
       const reader = new FileReader();
       reader.readAsDataURL(image);
+
+      reader.onprogress = () => {
+        console.log("uploading");
+        setUploadProgress(true);
+      };
+
       reader.onloadend = () => {
+        console.log(reader.result);
         setPreview(reader.result);
+        setUploadProgress(false);
+        console.log("upload ended");
       };
     }
   }, [image]);
@@ -76,6 +87,42 @@ function CreateNFT() {
       setJoke(loadingJokes[number]);
     }, 6000);
   };
+
+  const handleCreateNFT = async () => {
+    if (!form.name || !form.description || preview === null) {
+      setFormError(true);
+      setFormErrorMessage("Please fill in all fields.");
+      setTimeout(() => {
+        setFormError(false);
+      }, 3000);
+      return;
+    }
+    // add nft metadata to ipfs
+    addDataToIPFS(image)
+      .then((url) => {
+        const NFTMetadata = {
+          name: form.name,
+          description: form.description,
+          imageUrl: url,
+        };
+
+        console.log(JSON.stringify(NFTMetadata));
+      })
+      .catch((err) => {
+        console.log(err);
+        setFormError(true);
+        setFormErrorMessage(
+          "An error ocurred, please check your internet connection and try again."
+        );
+        setTimeout(() => {
+          setFormError(false);
+          setFormErrorMessage("");
+        }, 3000);
+      });
+
+    //
+  };
+
   return (
     <>
       {showApproveModal && (
@@ -125,6 +172,19 @@ function CreateNFT() {
 
       <Container>
         <Content ref={modal}>
+          {formError && (
+            <div
+              style={{
+                backgroundColor: "orange",
+                color: "white",
+                padding: "1.3rem",
+                borderRadius: "8px",
+                marginBottom: "1rem",
+              }}
+            >
+              {formErrorMessage}
+            </div>
+          )}
           <Title>
             <h1>Create NFT</h1>
             <Close onClick={handleCloseCreateModal} fontSize={"large"} />
@@ -132,7 +192,9 @@ function CreateNFT() {
           <Body>
             {!preview && (
               <InputContainer>
-                <Label>Upload Image</Label>
+                <Label>
+                  Upload Image <sup style={{ color: "red" }}>*</sup>
+                </Label>
                 <UploadImage>
                   <p style={{ marginBottom: "2rem" }}>PNG, JPG</p>
                   <Upload
@@ -153,6 +215,12 @@ function CreateNFT() {
                   />
                 </UploadImage>
               </InputContainer>
+            )}
+
+            {!preview && uploadProgress && (
+              <div>
+                <ClipLoader />
+              </div>
             )}
 
             {preview && (
@@ -215,7 +283,9 @@ function CreateNFT() {
               </InputContainer>
             )}
             <InputContainer>
-              <Label>Name</Label>
+              <Label>
+                Name <sup style={{ color: "red" }}>*</sup>
+              </Label>
               <Input
                 onChange={onInputChange}
                 name="name"
@@ -225,7 +295,9 @@ function CreateNFT() {
             </InputContainer>
 
             <InputContainer>
-              <Label>Description</Label>
+              <Label>
+                Description <sup style={{ color: "red" }}>*</sup>
+              </Label>
               <TextArea
                 onChange={onInputChange}
                 name="description"
@@ -259,7 +331,9 @@ function CreateNFT() {
               </>
             </InputContainer> */}
 
-            <Button style={{ marginTop: "2rem" }}>Create</Button>
+            <Button onClick={handleCreateNFT} style={{ marginTop: "2rem" }}>
+              Create
+            </Button>
           </Body>
         </Content>
       </Container>
