@@ -36,7 +36,7 @@ function NFTList() {
                 <AddIcon style={{ fontSize: "10rem" }} />
               </div>
               <div className="details">
-                <ContractName>NFTMint</ContractName>
+                <ContractName>NFMint</ContractName>
                 <NFTName>Create NFT</NFTName>
               </div>
             </NFT>
@@ -81,7 +81,7 @@ function NFTList() {
               <AddIcon style={{ fontSize: "10rem" }} color={"red"} />
             </div>
             <div className="details">
-              <ContractName>NFTMint</ContractName>
+              <ContractName>NFMint</ContractName>
               <NFTName>Create NFT</NFTName>
             </div>
           </NFT>
@@ -93,7 +93,7 @@ function NFTList() {
               </Logo>
               <img src={imageUrl} />
               <div className="details">
-                <ContractName>NFTMint</ContractName>
+                <ContractName>NFMint</ContractName>
                 <NFTName>{name}</NFTName>
               </div>
             </NFT>
