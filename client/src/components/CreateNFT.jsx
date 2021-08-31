@@ -13,8 +13,10 @@ import BarLoader from "react-spinners/BarLoader";
 import useClickOutside from "../hooks/useClickOutside";
 import addDataToIPFS from "../functions/getIPFS";
 import device from "../styles/responsive";
+import toast from "react-hot-toast";
+
 function CreateNFT() {
-  const { showCreateModal } = useContext(AppContext);
+  const { showCreateModal, NFMintContract, account } = useContext(AppContext);
   const [loadingJokes, setLoadingJokes] = useState([
     "Hey, go grab a coffee or something😙",
     "Nice, We are Creating History 😌",
@@ -24,7 +26,11 @@ function CreateNFT() {
     "Beginning Quantum Event👀",
     "I need more gas fee!!",
     "Fine I'm joking",
-    "I'm not joking",
+    "Exploiting Gateway to Nirvana !! 🏃🏾‍♂️",
+    "This shouldn't take too much time 🌚",
+    "Sell this for 7Eth okay? 🌚",
+    "Wow what a nice picture !! 🤩",
+
     "Gosh this is taking time, I need to sleep",
   ]);
   const { handleCloseCreateModal } = useContext(AppContextUpdate);
@@ -32,7 +38,9 @@ function CreateNFT() {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState(false);
+  const [showJokes, setShowJokes] = useState(false);
   const [formErrorMessage, setFormErrorMessage] = useState("");
   const [joke, setJoke] = useState("Alright Beginning the Transaction now 🙂");
 
@@ -85,7 +93,7 @@ function CreateNFT() {
     setInterval(() => {
       const number = Math.floor(Math.random() * loadingJokes.length);
       setJoke(loadingJokes[number]);
-    }, 6000);
+    }, 4000);
   };
 
   const handleCreateNFT = async () => {
@@ -98,6 +106,8 @@ function CreateNFT() {
       return;
     }
     // add nft metadata to ipfs
+    setShowApproveModal(true);
+    setLoading(true);
     addDataToIPFS(image)
       .then((url) => {
         const NFTMetadata = {
@@ -105,6 +115,31 @@ function CreateNFT() {
           description: form.description,
           imageUrl: url,
         };
+        renderJokes();
+        NFMintContract.methods
+          .addCollectible(JSON.stringify(NFTMetadata), account)
+          .send({
+            from: account,
+          })
+          .on("transactionHash", (hash) => {
+            console.log(hash);
+          })
+          .then((result) => {
+            setTimeout(() => {
+              setShowApproveModal(false);
+              handleCloseCreateModal(true);
+            }, 2500);
+            toast.success("NFT created successfully");
+            setLoading(false);
+
+            console.log(result);
+          })
+          .catch((err) => {
+            toast.error("An Error Occured");
+            clearInterval(renderJokes);
+            setShowApproveModal(false);
+            // setLoading(false);
+          });
 
         console.log(JSON.stringify(NFTMetadata));
       })
@@ -129,41 +164,47 @@ function CreateNFT() {
         <ConfirmationContainer>
           <ConfirmationContent onClick={() => renderJokes()}>
             <p className="header">Creating NFT</p>
+
             <p className="message">Please Approve the transaction dear Degen</p>
-            <p className="loader">
-              <p
-                style={{
-                  marginRight: "1.5rem",
-                  color: "blue",
-                  transtion: ".3s all",
-                }}
-              >
-                {joke}{" "}
-              </p>
-              <p style={{ textAlign: "center", marginTop: "1rem" }}>
-                <ClipLoader size={20} color="rgb(21, 113, 250)" />
-              </p>
-            </p>
-            {/* <p className="loader">
-              <p
-                style={{
-                  marginRight: "1.5rem",
-                  color: "blue",
-                  transtion: ".3s all",
-                }}
-              >
-                {"TRANSACTION SUCCESSFUL!"}{" "}
-              </p>
-              <p style={{ textAlign: "center", marginTop: "1rem" }}>
-                <CheckIcon
+            {loading && (
+              <p className="loader">
+                <p
                   style={{
-                    fontSize: "4rem",
-                    color: "green",
-                    fontWeight: "bold",
+                    marginRight: "1.5rem",
+                    color: "blue",
+                    transtion: ".3s all",
                   }}
-                />
+                >
+                  {joke}
+                </p>
+                <p style={{ textAlign: "center", marginTop: "1rem" }}>
+                  <ClipLoader size={20} color="rgb(21, 113, 250)" />
+                </p>
               </p>
-            </p> */}
+            )}
+
+            {!loading && (
+              <p className="loader">
+                <p
+                  style={{
+                    marginRight: "1.5rem",
+                    color: "blue",
+                    transtion: ".3s all",
+                  }}
+                >
+                  {"TRANSACTION SUCCESSFUL!"}{" "}
+                </p>
+                <p style={{ textAlign: "center", marginTop: "1rem" }}>
+                  <CheckIcon
+                    style={{
+                      fontSize: "4rem",
+                      color: "green",
+                      fontWeight: "bold",
+                    }}
+                  />
+                </p>
+              </p>
+            )}
 
             <p className="footer">Waiting For blockchain confirmation</p>
           </ConfirmationContent>

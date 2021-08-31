@@ -2,9 +2,9 @@ pragma solidity ^0.8.0;
 
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "./interfaces/INFT.sol";
+import "./interfaces/INFMint.sol";
 
-contract NFT is ERC721URIStorage, INFT  {
+contract NFMint is ERC721URIStorage, INFMint  {
      
     uint tokenCounter = 0;
 

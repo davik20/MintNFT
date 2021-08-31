@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import AppProvider from "./context/AppProvider";
 import imgLink from "./functions/getIPFS";
 import Home from "./pages/Home";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   // useEffect(() => {
@@ -13,6 +14,8 @@ function App() {
 
   return (
     <AppProvider>
+      <Toaster />
+
       <AppComponent>
         <Navbar />
         <Home />

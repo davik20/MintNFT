@@ -1,6 +1,9 @@
 import React, { createContext, useState, useEffect } from "react";
 import Web3 from "web3";
 import WalletConnectProvider from "@walletconnect/web3-provider";
+import NFMintAbi from "../contracts/NFMint.json";
+import config from "../config";
+
 export const AppContext = createContext();
 
 export const AppContextUpdate = createContext();
@@ -10,6 +13,7 @@ function AppProvider({ children }) {
   const [web3, setWeb3] = useState(null);
   const [chainError, setChainError] = useState(false);
   const [account, setAccount] = useState("");
+  const [NFMintContract, setNFMintContract] = useState(null);
 
   const [NFTs, setNFTs] = useState([
     {
@@ -35,12 +39,14 @@ function AppProvider({ children }) {
   useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on("chainChanged", (chainId) => {
-        if (chainId == 4) {
-          console.log("davik");
-          setChainError(false);
-        } else {
-          setChainError(true);
-          console.log("davik al");
+        if (config.mode === "production") {
+          if (chainId == 4) {
+            console.log("davik");
+            setChainError(false);
+          } else {
+            setChainError(true);
+            console.log("davik al");
+          }
         }
       });
       window.ethereum.on("accountsChanged", (accounts) => {
@@ -49,6 +55,17 @@ function AppProvider({ children }) {
     }
     return () => {};
   }, []);
+
+  useEffect(() => {
+    if (NFMintContract && account) {
+      NFMintContract.methods
+        .getAllUserCollectibles(account)
+        .call()
+        .then((result) => {
+          console.log(result);
+        });
+    }
+  }, [NFMintContract]);
 
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
@@ -79,12 +96,26 @@ function AppProvider({ children }) {
         setAccount(accounts[0]);
 
         const id = await web3.eth.net.getId();
-        if (id != 4) {
-          console.log("change network to rinkeby");
-          setChainError(true);
-        } else {
-          setChainError(false);
-          console.log("Network Good");
+
+        if (config.mode === "development") {
+          const id = await web3.eth.net.getId();
+          //   console.log(NFMintAbi.);
+          console.log(id);
+
+          const contract = new web3.eth.Contract(
+            NFMintAbi.abi,
+            "0xE2aEe0BC83Ee1e1978136C9eD6993D351897954d"
+          );
+
+          setNFMintContract(contract);
+        }
+
+        if (config.mode === "production") {
+          if (id != 4) {
+            setChainError(true);
+          } else {
+            setChainError(false);
+          }
         }
       }
       if (!window.ethereum) {
@@ -107,10 +138,22 @@ function AppProvider({ children }) {
 
   return (
     <AppContext.Provider
-      value={{ NFTs: NFTs, showCreateModal, web3, chainError, account }}
+      value={{
+        NFTs: NFTs,
+        showCreateModal,
+        web3,
+        chainError,
+        account,
+        NFMintContract,
+      }}
     >
       <AppContextUpdate.Provider
-        value={{ handleCloseCreateModal, handleShowCreateModal, connectWallet }}
+        value={{
+          handleCloseCreateModal,
+          handleShowCreateModal,
+          connectWallet,
+          NFMintContract,
+        }}
       >
         {children}
       </AppContextUpdate.Provider>
