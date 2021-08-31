@@ -6,11 +6,10 @@ module.exports = async function (deployer, N, accounts) {
 
   console.log(nfMint);
 
-  // await deployer.deploy(Minter);
+  // await deployer.deploy(Minter);C=
 
-  // // const minter = await Minter.deployed();
+  // const result = await nfMint.addCollectible("uri", accounts[0]);
 
-  // // const result = await minter.mintNFT("name", "symbol", "uri");
-  // // const nftAddress = result.logs[0].args.contractAddress;
-  // // const collectible = await minter.getCollectible(0, nftAddress);
+  // const collectibles = await nfMint.getAllUserCollectibles(accounts[0]);
+  // console.log(collectibles);
 };
