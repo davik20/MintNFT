@@ -24,7 +24,6 @@ function NFTDisplay() {
               onBlur={() => {
                 searchBar.current.style.border = "1px solid rgba(0, 0, 0, 0.1)";
               }}
-              onFo
               type="text"
               placeholder="Search"
             />

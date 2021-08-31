@@ -1,5 +1,5 @@
 const config = {
-  mode: "development",
+  mode: "production",
 };
 
 export default config;

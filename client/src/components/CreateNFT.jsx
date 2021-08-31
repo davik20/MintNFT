@@ -16,7 +16,8 @@ import device from "../styles/responsive";
 import toast from "react-hot-toast";
 
 function CreateNFT() {
-  const { showCreateModal, NFMintContract, account } = useContext(AppContext);
+  const { showCreateModal, NFMintContract, account, web3 } =
+    useContext(AppContext);
   const [loadingJokes, setLoadingJokes] = useState([
     "Hey, go grab a coffee or something😙",
     "Nice, We are Creating History 😌",
@@ -33,13 +34,15 @@ function CreateNFT() {
 
     "Gosh this is taking time, I need to sleep",
   ]);
-  const { handleCloseCreateModal } = useContext(AppContextUpdate);
+  const { handleCloseCreateModal, setRand } = useContext(AppContextUpdate);
+  const [hash, setHash] = useState("");
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState(false);
+  const [transactionSent, setTransactionSent] = useState(false);
   const [showJokes, setShowJokes] = useState(false);
   const [formErrorMessage, setFormErrorMessage] = useState("");
   const [joke, setJoke] = useState("Alright Beginning the Transaction now 🙂");
@@ -67,15 +70,12 @@ function CreateNFT() {
       reader.readAsDataURL(image);
 
       reader.onprogress = () => {
-        console.log("uploading");
         setUploadProgress(true);
       };
 
       reader.onloadend = () => {
-        console.log(reader.result);
         setPreview(reader.result);
         setUploadProgress(false);
-        console.log("upload ended");
       };
     }
   }, [image]);
@@ -93,7 +93,7 @@ function CreateNFT() {
     setInterval(() => {
       const number = Math.floor(Math.random() * loadingJokes.length);
       setJoke(loadingJokes[number]);
-    }, 4000);
+    }, 10000);
   };
 
   const handleCreateNFT = async () => {
@@ -102,7 +102,7 @@ function CreateNFT() {
       setFormErrorMessage("Please fill in all fields.");
       setTimeout(() => {
         setFormError(false);
-      }, 3000);
+      }, 5000);
       return;
     }
     // add nft metadata to ipfs
@@ -120,17 +120,21 @@ function CreateNFT() {
           .addCollectible(JSON.stringify(NFTMetadata), account)
           .send({
             from: account,
+            gasPrice: web3.utils.toWei("120", "Gwei"),
           })
           .on("transactionHash", (hash) => {
             console.log(hash);
+            setTransactionSent(true);
+            setHash(hash);
           })
           .then((result) => {
+            setRand(Math.random() * 40000000);
             setTimeout(() => {
               setShowApproveModal(false);
               handleCloseCreateModal(true);
-            }, 2500);
-            toast.success("NFT created successfully");
+            }, 4000);
             setLoading(false);
+            toast.success("NFT created successfully");
 
             console.log(result);
           })
@@ -149,6 +153,7 @@ function CreateNFT() {
         setFormErrorMessage(
           "An error ocurred, please check your internet connection and try again."
         );
+        setShowApproveModal(false);
         setTimeout(() => {
           setFormError(false);
           setFormErrorMessage("");
@@ -165,9 +170,9 @@ function CreateNFT() {
           <ConfirmationContent onClick={() => renderJokes()}>
             <p className="header">Creating NFT</p>
 
-            <p className="message">Please Approve the transaction dear Degen</p>
+            <p className="message">Please Approve the transaction </p>
             {loading && (
-              <p className="loader">
+              <div className="loader">
                 <p
                   style={{
                     marginRight: "1.5rem",
@@ -180,7 +185,7 @@ function CreateNFT() {
                 <p style={{ textAlign: "center", marginTop: "1rem" }}>
                   <ClipLoader size={20} color="rgb(21, 113, 250)" />
                 </p>
-              </p>
+              </div>
             )}
 
             {!loading && (
@@ -205,7 +210,17 @@ function CreateNFT() {
                 </p>
               </p>
             )}
-
+            {transactionSent && (
+              <p>
+                <a
+                  rel="noreferrer"
+                  target="_blank"
+                  href={`https://rinkeby.etherscan.io/tx/${hash}`}
+                >
+                  Check Progress
+                </a>{" "}
+              </p>
+            )}
             <p className="footer">Waiting For blockchain confirmation</p>
           </ConfirmationContent>
         </ConfirmationContainer>

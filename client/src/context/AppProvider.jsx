@@ -3,6 +3,7 @@ import Web3 from "web3";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import NFMintAbi from "../contracts/NFMint.json";
 import config from "../config";
+import toast from "react-hot-toast";
 
 export const AppContext = createContext();
 
@@ -12,40 +13,21 @@ function AppProvider({ children }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [web3, setWeb3] = useState(null);
   const [chainError, setChainError] = useState(false);
+  const [loadingNFTs, setLoadingNFTs] = useState(false);
   const [account, setAccount] = useState("");
   const [NFMintContract, setNFMintContract] = useState(null);
+  const [rand, setRand] = useState(0);
 
-  const [NFTs, setNFTs] = useState([
-    {
-      name: "Cool NFT",
-      imgLink: `${process.env.PUBLIC_URL}/img/profile.png`,
-      features: {
-        height: "4meters",
-        color: "red",
-        rare: "true",
-      },
-    },
-    {
-      name: "Cool Punk",
-      imgLink: `${process.env.PUBLIC_URL}/img/nftmintlogo.jpeg`,
-      features: {
-        height: "7 meters",
-        color: "green",
-        rare: "false",
-      },
-    },
-  ]);
+  const [NFTs, setNFTs] = useState([]);
 
   useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on("chainChanged", (chainId) => {
         if (config.mode === "production") {
           if (chainId == 4) {
-            console.log("davik");
             setChainError(false);
           } else {
             setChainError(true);
-            console.log("davik al");
           }
         }
       });
@@ -58,22 +40,37 @@ function AppProvider({ children }) {
 
   useEffect(() => {
     if (NFMintContract && account) {
+      setLoadingNFTs(true);
       NFMintContract.methods
         .getAllUserCollectibles(account)
         .call()
         .then((result) => {
-          console.log(result);
+          const userNFTs = result.map((nft) => {
+            const { name, description, imageUrl } = JSON.parse(nft.tokenURI);
+
+            return {
+              id: nft.tokenId,
+              name,
+              description,
+              imageUrl,
+            };
+          });
+
+          setNFTs(userNFTs);
+          setLoadingNFTs(false);
+        })
+        .catch((err) => {
+          setLoadingNFTs(false);
+          toast("An error occurred");
         });
     }
-  }, [NFMintContract]);
+  }, [NFMintContract, rand, account]);
 
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
   };
 
   const handleShowCreateModal = () => {
-    console.log("davik");
-    console.log("victor");
     if (!account) {
       alert("You are not connected, please connect");
       return;
@@ -91,7 +88,7 @@ function AppProvider({ children }) {
         await window.ethereum.request({ method: "eth_requestAccounts" });
         const web3 = new Web3(window.ethereum);
         const accounts = await web3.eth.getAccounts();
-        console.log(accounts);
+
         setWeb3(web3);
         setAccount(accounts[0]);
 
@@ -99,12 +96,10 @@ function AppProvider({ children }) {
 
         if (config.mode === "development") {
           const id = await web3.eth.net.getId();
-          //   console.log(NFMintAbi.);
-          console.log(id);
 
           const contract = new web3.eth.Contract(
             NFMintAbi.abi,
-            "0xE2aEe0BC83Ee1e1978136C9eD6993D351897954d"
+            "0xA8FEFbfDa63e88533283a1251371ED71243Fc62D"
           );
 
           setNFMintContract(contract);
@@ -114,6 +109,14 @@ function AppProvider({ children }) {
           if (id != 4) {
             setChainError(true);
           } else {
+            const id = await web3.eth.net.getId();
+
+            const contract = new web3.eth.Contract(
+              NFMintAbi.abi,
+              "0xA8FEFbfDa63e88533283a1251371ED71243Fc62D"
+            );
+
+            setNFMintContract(contract);
             setChainError(false);
           }
         }
@@ -126,13 +129,14 @@ function AppProvider({ children }) {
         const web3 = new Web3(walletConnectProvider);
 
         const accounts = await web3.eth.getAccounts();
-        console.log(accounts);
+
         setWeb3(web3);
         setAccount(accounts[0]);
       }
     } catch (error) {
       alert(error.message);
       console.log(error.message);
+      setLoadingNFTs(false);
     }
   };
 
@@ -145,6 +149,7 @@ function AppProvider({ children }) {
         chainError,
         account,
         NFMintContract,
+        loadingNFTs,
       }}
     >
       <AppContextUpdate.Provider
@@ -153,6 +158,7 @@ function AppProvider({ children }) {
           handleShowCreateModal,
           connectWallet,
           NFMintContract,
+          setRand,
         }}
       >
         {children}

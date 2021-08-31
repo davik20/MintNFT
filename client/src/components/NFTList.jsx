@@ -2,15 +2,16 @@ import React, { useContext } from "react";
 import styled from "styled-components";
 import getLogo from "../functions/getLogo";
 import AddIcon from "@material-ui/icons/Add";
+import Skeleton from "@material-ui/lab/Skeleton";
 import device from "../styles/responsive";
 import { AppContext, AppContextUpdate } from "../context/AppProvider";
 
 function NFTList() {
-  const { NFTs, chainError, account } = useContext(AppContext);
+  const { NFTs, chainError, account, loadingNFTs } = useContext(AppContext);
   const { handleShowCreateModal } = useContext(AppContextUpdate);
   return (
     <>
-      {NFTs.length === 0 && (
+      {!loadingNFTs && NFTs.length === 0 && (
         <div>
           <p style={{ textAlign: "center", marginBottom: "2rem" }}>
             {" "}
@@ -32,7 +33,7 @@ function NFTList() {
                 }}
               >
                 {" "}
-                <AddIcon style={{ fontSize: "10rem" }} color={"red"} />
+                <AddIcon style={{ fontSize: "10rem" }} />
               </div>
               <div className="details">
                 <ContractName>NFTMint</ContractName>
@@ -42,7 +43,30 @@ function NFTList() {
           </List>
         </div>
       )}
-      {NFTs.length > 0 && (
+
+      {loadingNFTs && (
+        <List>
+          <div style={{ margin: "1rem" }}>
+            <Skeleton variant="rect" width={300} height={118} />
+            <Skeleton />
+            <Skeleton />
+            <Skeleton height={50} />
+          </div>
+          <div style={{ margin: "1rem" }}>
+            <Skeleton variant="rect" width={300} height={118} />
+            <Skeleton />
+            <Skeleton />
+            <Skeleton height={50} />
+          </div>
+          <div style={{ margin: "1rem" }}>
+            <Skeleton variant="rect" width={300} height={118} />
+            <Skeleton />
+            <Skeleton />
+            <Skeleton height={50} />
+          </div>
+        </List>
+      )}
+      {!loadingNFTs && NFTs.length > 0 && (
         <List>
           <NFT onClick={() => handleShowCreateModal()}>
             <div
@@ -54,7 +78,6 @@ function NFTList() {
                 alignItems: "center",
               }}
             >
-              {" "}
               <AddIcon style={{ fontSize: "10rem" }} color={"red"} />
             </div>
             <div className="details">
@@ -63,12 +86,12 @@ function NFTList() {
             </div>
           </NFT>
 
-          {NFTs.map(({ name, imgLink, features }) => (
-            <NFT>
+          {NFTs.map(({ name, imageUrl }, index) => (
+            <NFT key={index}>
               <Logo>
                 <img src={getLogo()} />
               </Logo>
-              <img src={imgLink} />
+              <img src={imageUrl} />
               <div className="details">
                 <ContractName>NFTMint</ContractName>
                 <NFTName>{name}</NFTName>
