@@ -120,7 +120,6 @@ function CreateNFT() {
           .addCollectible(JSON.stringify(NFTMetadata), account)
           .send({
             from: account,
-            gasPrice: web3.utils.toWei("120", "Gwei"),
           })
           .on("transactionHash", (hash) => {
             console.log(hash);
@@ -128,7 +127,7 @@ function CreateNFT() {
             setHash(hash);
           })
           .then((result) => {
-            setRand(Math.random() * 40000000);
+            // setRand(Math.random() * 40000000);
             setTimeout(() => {
               setShowApproveModal(false);
               handleCloseCreateModal(true);
@@ -140,7 +139,7 @@ function CreateNFT() {
           })
           .catch((err) => {
             toast.error("An Error Occured");
-            clearInterval(renderJokes);
+
             setShowApproveModal(false);
             // setLoading(false);
           });
@@ -226,7 +225,11 @@ function CreateNFT() {
         </ConfirmationContainer>
       )}
 
-      <Container>
+      <Container
+        onClick={() => {
+          console.log("davk");
+        }}
+      >
         <Content ref={modal}>
           {formError && (
             <div

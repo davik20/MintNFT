@@ -6,7 +6,7 @@ module.exports = async function (deployer, N, accounts) {
 
   console.log(nfMint);
 
-  // await deployer.deploy(Minter);C=
+  // // await deployer.deploy(Minter);
 
   // const result = await nfMint.addCollectible("uri", accounts[0]);
 

@@ -19,7 +19,7 @@
     "react-scripts": "^4.0.3",
     "react-spinners": "^0.10.6",
     "styled-components": "^5.3.1",
-    "web3": "^1.2.2"
+    "web3": "^1.5.2"
   },
   "scripts": {
     "predeploy": "npm run build",

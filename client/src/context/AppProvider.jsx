@@ -12,6 +12,7 @@ export const AppContextUpdate = createContext();
 function AppProvider({ children }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [web3, setWeb3] = useState(null);
+  const [web32, setWeb32] = useState(null);
   const [chainError, setChainError] = useState(false);
   const [loadingNFTs, setLoadingNFTs] = useState(false);
   const [account, setAccount] = useState("");
@@ -24,7 +25,7 @@ function AppProvider({ children }) {
     if (window.ethereum) {
       window.ethereum.on("chainChanged", (chainId) => {
         if (config.mode === "production") {
-          if (chainId == 4) {
+          if (chainId === 4) {
             setChainError(false);
           } else {
             setChainError(true);
@@ -46,7 +47,9 @@ function AppProvider({ children }) {
       NFMintContract.methods
         .getAllUserCollectibles(account)
         .call({ from: account })
+
         .then((result) => {
+          console.log(result);
           const userNFTs = result.map((nft) => {
             const { name, description, imageUrl } = JSON.parse(nft.tokenURI);
 
@@ -89,32 +92,40 @@ function AppProvider({ children }) {
     try {
       if (window.ethereum) {
         await window.ethereum.request({ method: "eth_requestAccounts" });
+        // await window.ethereum.enable();
+        const web32 = new Web3(
+          "https://rinkeby.infura.io/v3/0208c839c6574096b94761cf9c31ba79"
+        );
+
         const web3 = new Web3(window.ethereum);
+
         const accounts = await web3.eth.getAccounts();
 
         setWeb3(web3);
+        setWeb32(web32);
         setAccount(accounts[0]);
 
         const id = await web3.eth.net.getId();
 
         if (config.mode === "development") {
           const id = await web3.eth.net.getId();
-
+          console.log(NFMintAbi.networks["5777"]);
           const contract = new web3.eth.Contract(
             NFMintAbi.abi,
-            "0xfc0918F42b7B6008A7Fb2dC7464bc6Ea6e871067"
+            NFMintAbi.networks[5777].address
+            // "0x3F8529aE6F37c671D9D3a20CE9B2c597356247cE"
           );
 
           setNFMintContract(contract);
         }
 
         if (config.mode === "production") {
-          if (id != 4) {
+          if (id !== 4) {
             setChainError(true);
           } else {
             const id = await web3.eth.net.getId();
 
-            const contract = new web3.eth.Contract(
+            const contract = new web32.eth.Contract(
               NFMintAbi.abi,
               "0x46c9f3C031b79D2a9f9Ab3e416Eb19A91dd00e6D"
             );
@@ -130,6 +141,11 @@ function AppProvider({ children }) {
         });
         await walletConnectProvider.enable();
         const web3 = new Web3(walletConnectProvider);
+
+        // const contract = new web3.eth.Contract(
+        //   NFMintAbi.abi,
+        //   "0x46c9f3C031b79D2a9f9Ab3e416Eb19A91dd00e6D"
+        // );
 
         const accounts = await web3.eth.getAccounts();
 

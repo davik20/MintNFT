@@ -89,9 +89,12 @@ function NFTList() {
           {NFTs.map(({ name, imageUrl }, index) => (
             <NFT key={index}>
               <Logo>
-                <img src={`${process.env.PUBLIC_URL}/img/ethereumlogo.png`} />
+                <img
+                  alt=""
+                  src={`${process.env.PUBLIC_URL}/img/ethereumlogo.png`}
+                />
               </Logo>
-              <img src={imageUrl} />
+              <img alt="" src={imageUrl} />
               <div className="details">
                 <ContractName>NFMint</ContractName>
                 <NFTName>{name}</NFTName>
